@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Instagram Recovery — Offline Command Center</title>
+<style>
+  :root{
+    --bg:#0D1117; --card:#161B22; --surface:#21262D; --stroke:#2D333B;
+    --primary:#6C63FF; --primary-light:#8B85FF; --green:#00E676;
+    --orange:#FF9100; --red:#FF5252; --cyan:#00D9FF;
+    --text:#E6EDF3; --dim:#8B949E; --faint:#6E7681;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{font-size:16px}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;padding-bottom:86px}
+  a{color:var(--cyan);text-decoration:none}
+  .wrap{max-width:720px;margin:0 auto;padding:14px}
+  /* Header */
+  .hdr{background:var(--card);border-bottom:1px solid var(--stroke);padding:14px 16px;position:sticky;top:0;z-index:40}
+  .hdr-in{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{font-size:11px;letter-spacing:.15em;color:var(--primary-light);font-weight:700}
+  .sub{font-size:13px;color:var(--dim);margin-top:3px}
+  .pill{font-size:12px;padding:7px 12px;border-radius:20px;background:var(--surface);color:var(--dim);white-space:nowrap}
+  .pill.ok{background:rgba(0,230,118,.12);color:var(--green)}
+  /* Warning banner */
+  .safe{background:rgba(0,217,255,.08);border:1px solid rgba(0,217,255,.35);border-radius:14px;padding:12px 14px;font-size:13px;color:#9BE9FF;line-height:1.5;margin:14px 0}
+  .safe b{color:var(--cyan)}
+  /* Cards */
+  .card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:16px;margin-bottom:12px}
+  .card h3{font-size:16px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .card p{font-size:13.5px;color:var(--dim);line-height:1.55}
+  .section-title{font-size:11px;letter-spacing:.14em;color:var(--faint);font-weight:700;margin:20px 0 8px;padding-left:2px}
+  /* Buttons */
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border:none;border-radius:14px;
+    font-size:15.5px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text);margin-top:10px;transition:transform .05s}
+  .btn:active{transform:scale(.985)}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.green{background:var(--green);color:#052e16}
+  .btn.outline{background:transparent;border:1.5px solid var(--stroke)}
+  .btn.sm{min-height:46px;font-size:14px}
+  .btn .ext{font-size:13px;opacity:.8}
+  /* Steps */
+  .step{background:var(--card);border:1px solid var(--stroke);border-radius:16px;margin-bottom:12px;overflow:hidden}
+  .step-h{display:flex;gap:12px;align-items:flex-start;padding:16px}
+  .step-n{flex:0 0 34px;height:34px;border-radius:50%;background:rgba(108,99,255,.18);color:var(--primary-light);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  .step-t{flex:1}
+  .step-t h4{font-size:15.5px;margin-bottom:5px}
+  .step-t p{font-size:13.5px;color:var(--dim);line-height:1.55;white-space:pre-line}
+  .step.done{opacity:.55}
+  .step.done .step-n{background:rgba(0,230,118,.2);color:var(--green)}
+  /* Checklist */
+  .check{display:flex;gap:13px;align-items:flex-start;padding:15px 14px;background:var(--card);border:1px solid var(--stroke);
+    border-radius:14px;margin-bottom:9px;cursor:pointer}
+  .check .box{flex:0 0 26px;height:26px;border-radius:8px;border:2px solid var(--faint);display:flex;align-items:center;
+    justify-content:center;font-size:15px;color:transparent;transition:.15s;margin-top:1px}
+  .check.on .box{background:var(--green);border-color:var(--green);color:#052e16}
+  .check .txt{font-size:14.5px;line-height:1.45}
+  .check.on .txt{color:var(--dim);text-decoration:line-through}
+  .check .hint{display:block;font-size:12.5px;color:var(--faint);margin-top:3px;text-decoration:none}
+  /* Routes */
+  .route{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:15px 16px;margin-bottom:11px}
+  .route-top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+  .route-name{font-size:15.5px;font-weight:700}
+  .route-desc{font-size:13px;color:var(--dim);margin-top:5px;line-height:1.5}
+  .status{font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;background:var(--surface);color:var(--dim);white-space:nowrap}
+  .status.pending{background:rgba(255,145,0,.15);color:var(--orange)}
+  .status.review,.status.waiting{background:rgba(0,217,255,.13);color:var(--cyan)}
+  .status.success{background:rgba(0,230,118,.14);color:var(--green)}
+  .status.failed{background:rgba(255,82,82,.14);color:var(--red)}
+  .route-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .route-acts .btn{margin-top:0;flex:1;min-width:110px;padding:0 10px}
+  .sel{background:var(--surface);color:var(--text);border:1px solid var(--stroke);border-radius:12px;min-height:46px;
+    padding:0 10px;font-size:14px;flex:1;min-width:130px}
+  .note-in{width:100%;background:var(--bg);border:1px solid var(--stroke);border-radius:12px;color:var(--text);
+    min-height:46px;padding:10px 12px;font-size:14px;margin-top:9px}
+  .updates{margin-top:9px;font-size:12.5px;color:var(--faint);line-height:1.7}
+  /* Forms */
+  label.f{display:block;font-size:13.5px;color:var(--dim);margin:14px 0 6px}
+  input.f,select.f{width:100%;background:var(--bg);border:1.5px solid var(--stroke);border-radius:13px;color:var(--text);
+    min-height:52px;padding:0 15px;font-size:15.5px;outline:none}
+  input.f:focus{border-color:var(--primary)}
+  .two{display:flex;gap:10px}.two>*{flex:1}
+  /* Tabs (bottom nav like the app) */
+  .nav{position:fixed;bottom:0;left:0;right:0;height:76px;background:rgba(13,17,23,.97);border-top:1px solid var(--stroke);
+    display:flex;z-index:50;backdrop-filter:blur(8px)}
+  .nav button{flex:1;background:none;border:none;color:var(--faint);font-size:12.5px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:4px;cursor:pointer;padding-bottom:6px}
+  .nav button .ic{font-size:22px}
+  .nav button.on{color:var(--primary-light)}
+  /* Toast */
+  #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--text);
+    padding:12px 22px;border-radius:30px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99;border:1px solid var(--stroke)}
+  #toast.show{opacity:1}
+  .page{display:none}.page.on{display:block;animation:fade .18s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  .row-actions{display:flex;gap:9px;margin-top:12px}
+  .row-actions .btn{margin-top:0}
+  .tiny{font-size:12px;color:var(--faint);line-height:1.6;text-align:center;margin-top:16px}
+  .jrn{font-size:13px;color:var(--dim);padding:9px 12px;background:var(--card);border-radius:10px;margin-bottom:7px;
+    border-left:3px solid var(--primary);line-height:1.5;word-break:break-word}
+  .success-hero{background:linear-gradient(135deg,rgba(0,230,118,.15),rgba(108,99,255,.12));border:1px solid rgba(0,230,118,.4);
+    border-radius:18px;padding:22px;text-align:center;margin-bottom:14px}
+  .success-hero h2{font-size:22px;margin-bottom:8px}
+  .success-hero p{font-size:14px;color:var(--dim);line-height:1.6}
+  @media(min-width:640px){.nav{border-radius:0}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-in">
+    <div>
+      <div class="brand">RECOVERY COMMAND CENTER</div>
+      <div class="sub" id="hdrSub">Offline · local-only · no login fields</div>
+    </div>
+    <div class="pill" id="hdrPill">Setup pending</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══════════ SETUP ══════════ -->
+  <div id="setupPage">
+    <div class="safe"><b>🛡️ Safe to use:</b> Ye page <b>100% offline</b> hai — na password leta hai, na kisi server ko data bhejta hai. Sab kuch tere browser me save hota hai. Asli recovery official Instagram links ke through hoti hai jo is page se 1 tap me khulte hain.</div>
+    <div class="card">
+      <h3>⚙️ Setup — Account facts (1 baar)</h3>
+      <p>Ye info sirf tere browser me rehti hai. Isse tera personalized plan banega.</p>
+      <label class="f">1. Instagram username (@handle)</label>
+      <input class="f" id="s_username" placeholder="your_username">
+      <label class="f">2. Purana account email (jo ab nahi milta)</label>
+      <input class="f" id="s_old_email" placeholder="old@example.com">
+      <label class="f">3. Us purane inbox me ABHI login ho sakta hai?</label>
+      <select class="f" id="s_old_access"><option value="no">No — band/gaya hua</option><option value="yes">Haan — abhi bhi khulta hai</option></select>
+      <label class="f">4. Purana registered phone (jo ab lost hai)</label>
+      <input class="f" id="s_old_phone" placeholder="+91XXXXXXXXXX">
+      <label class="f">5. NAYA secure email (jo ab TERA hai — Instagram yahi use karega)</label>
+      <input class="f" id="s_secure_email" placeholder="newgmail@gmail.com">
+      <label class="f">6. Account banate waqt kya device tha?</label>
+      <select class="f" id="s_signup_dev"><option>Android</option><option>iPhone</option><option>iPad</option><option>Other</option></select>
+      <label class="f">7. Account me TUMHARI apni photos hain?</label>
+      <select class="f" id="s_photos"><option value="yes">Haan — meri photos hain</option><option value="no">Nahi</option></select>
+      <label class="f">8. Usual login device abhi paas hai?</label>
+      <select class="f" id="s_usual_dev"><option value="no">Nahi (phone chori hua)</option><option value="yes">Haan</option></select>
+      <label class="f">9. Facebook account linked tha / login karta tha?</label>
+      <select class="f" id="s_fb"><option value="no">No</option><option value="yes">Yes</option></select>
+      <label class="f">10. 2FA backup codes save hain?</label>
+      <select class="f" id="s_codes"><option value="no">No</option><option value="yes">Yes</option></select>
+      <button class="btn green" onclick="saveSetup()">💾 Save &amp; generate my plan</button>
+    </div>
+  </div>
+
+  <!-- ══════════ HOME ══════════ -->
+  <div class="page" id="page-home">
+    <div id="successHero"></div>
+    <div class="safe"><b>🛡️ Safe:</b> Ye page <b>offline</b> hai — koi password/OTP field nahi, koi server nahi. Data sirf is browser me. Recovery hoti hai official Instagram pages pe jo neeche buttons se khulte hain.</div>
+
+    <div class="card">
+      <h3>📊 Status</h3>
+      <div id="homeStats"></div>
+      <div class="row-actions">
+        <button class="btn primary sm" onclick="go('plan')">📋 My Plan</button>
+        <button class="btn green sm" onclick="go('routes')">🛤️ Routes</button>
+      </div>
+    </div>
+
+    <div class="section-title">QUICK ACTIONS — OFFICIAL LINKS</div>
+    <div class="card" style="padding:6px 14px 14px">
+      <button class="btn primary" onclick="openLink('https://www.instagram.com/hacked/')">🏴 Hacked flow — instagram.com/hacked <span class="ext">↗</span></button>
+      <button class="btn" onclick="openLink('https://www.instagram.com/accounts/password/reset/')">🔑 Password reset link <span class="ext">↗</span></button>
+      <button class="btn" onclick="openLink('https://www.facebook.com/hacked')">🔗 Meta recovery hub (facebook.com/hacked) <span class="ext">↗</span></button>
+      <button class="btn" onclick="openLink('https://help.instagram.com/358911864194456')">📚 Help: lost email/phone <span class="ext">↗</span></button>
+      <button class="btn" onclick="openLink('https://help.instagram.com/')">🤖 Help Center → Meta AI assistant chat <span class="ext">↗</span></button>
+      <button class="btn" onclick="openLink('https://help.instagram.com/contact/272476913194545')">📨 Real feedback form <span class="ext">↗</span></button>
+      <button class="btn outline" onclick="openLink('https://www.meta.com/account-recovery-support')">🏛️ meta.com/account-recovery-support <span class="ext">↗</span></button>
+    </div>
+
+    <div class="section-title">SAFETY</div>
+    <div class="card">
+      <p>✅ Genuine emails sirf in domains se: <b style="color:var(--cyan)">@mail.instagram.com · @support.instagram.com · @support.facebook.com · @facebookmail.com · @global.metamail.com</b></p>
+      <p style="margin-top:8px">❌ Koi bhi paid "recovery expert" = SCAM. ❌ Kisi ko bhi login code/backup code mat do. ❌ Ek din me 1 hi request — spam = bot flag.</p>
+    </div>
+    <div class="tiny">Recovery is FREE and only through official Instagram/Meta flows.<br>Data: localStorage only · Export/Import in Journal tab</div>
+  </div>
+
+  <!-- ══════════ PLAN ══════════ -->
+  <div class="page" id="page-plan">
+    <div class="section-title">YOUR PERSONALIZED PLAN</div>
+    <div id="planSteps"></div>
+  </div>
+
+  <!-- ══════════ PREP ══════════ -->
+  <div class="page" id="page-prep">
+    <div class="section-title">READINESS CHECKLIST — tap to toggle</div>
+    <div id="prepList"></div>
+    <button class="btn outline" onclick="resetPrep()">↺ Reset checklist</button>
+  </div>
+
+  <!-- ══════════ ROUTES ══════════ -->
+  <div class="page" id="page-routes">
+    <div class="section-title">RECOVERY ROUTES — start, track, update</div>
+    <div id="routeList"></div>
+  </div>
+
+  <!-- ══════════ JOURNAL ══════════ -->
+  <div class="page" id="page-journal">
+    <div class="section-title">JOURNAL — kya kab kiya</div>
+    <div class="card" style="padding:14px">
+      <input class="note-in" id="jrnInput" placeholder="Note likho… (jaise: 'selfie submit kiya')" style="margin-top:0">
+      <div class="row-actions">
+        <button class="btn primary sm" onclick="addJournal()">+ Add note</button>
+        <button class="btn sm" onclick="exportData()">⬇ Export JSON</button>
+      </div>
+      <label class="btn outline sm" style="cursor:pointer">⬆ Import JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+      <button class="btn outline sm" onclick="editFacts()">✏ Edit setup facts</button>
+    </div>
+    <div id="jrnList"></div>
+  </div>
+
+</div>
+
+<div class="nav">
+  <button id="nav-home" onclick="go('home')"><span class="ic">🏠</span>Home</button>
+  <button id="nav-plan" onclick="go('plan')"><span class="ic">📋</span>Plan</button>
+  <button id="nav-prep" onclick="go('prep')"><span class="ic">✅</span>Prep</button>
+  <button id="nav-routes" onclick="go('routes')"><span class="ic">🛤️</span>Routes</button>
+  <button id="nav-journal" onclick="go('journal')"><span class="ic">📝</span>Journal</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const KEY = "ig_recovery_center_v1";
+
+const ROUTES = {
+  revert:    {name:"Security email revert", desc:"Purane inbox me security@mail.instagram.com ka 'secure my account' link — email change revert sabse fast.", url:"https://www.instagram.com/"},
+  resetlink: {name:"Password reset link", desc:"instagram.com/accounts/password/reset → login link us contact pe jo abhi tere paas hai.", url:"https://www.instagram.com/accounts/password/reset/"},
+  hacked:    {name:"Hacked account flow", desc:"instagram.com/hacked → 'My account was compromised' → login link / security code. (agar link na aaye → Need more help?)", url:"https://www.instagram.com/hacked/"},
+  support:   {name:"Support request (MOBILE se)", desc:"Mobile device se support request + NAYA secure email. Sirf isi flow me identity/selfie option milta hai.", url:"https://www.instagram.com/hacked/"},
+  selfie:    {name:"Video selfie verify", desc:"Head-turn video selfie (account me teri photos hon). Light achi, no filter/glasses/hat. Review ≤2 business days.", url:"https://help.instagram.com/1053588012132894"},
+  idupload:  {name:"ID upload", desc:"Government photo ID (Aadhaar/PAN/driving license) — naam, photo, DOB match. Sirf app ke andar hi upload karna jab screen dikhe.", url:"https://help.instagram.com/293775921768331"},
+  metaai:    {name:"Meta AI support assistant", desc:"Help Center ka 24/7 chat — quick guidance ke liye.", url:"https://help.instagram.com/"},
+  verified:  {name:"Meta Verified support", desc:"Paid plan — human chat/email support. Sabse fast human milti hai.", url:"https://help.instagram.com/"},
+  friends:   {name:"Trusted friends vouch", desc:"2 Instagram friends identity confirm karein — agar flow me option dikhe.", url:"https://help.instagram.com/"},
+};
+
+let S = load();
+
+function load(){
+  try{ const r = localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){}
+  return {facts:{}, prep:{}, routes:{}, journal:[], page:"home"};
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast("Save failed: storage full/blocked"); } }
+function now(){ const d=new Date(); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove("show"),2200); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function openLink(u){ window.open(u,"_blank","noopener"); }
+
+/* ── Navigation ── */
+function go(page){
+  S.page = page; save();
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));
+  document.getElementById("page-"+page).classList.add("on");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("on"));
+  document.getElementById("nav-"+page).classList.add("on");
+  if(page==="plan") renderPlan();
+  if(page==="prep") renderPrep();
+  if(page==="routes") renderRoutes();
+  if(page==="journal") renderJournal();
+  if(page==="home") renderHome();
+  window.scrollTo(0,0);
+}
+
+/* ── Setup ── */
+function renderSetup(){
+  const f = S.facts||{};
+  const set=(id,v)=>{const el=document.getElementById(id); if(el&&v!=null) el.value=v;};
+  set("s_username",f.username); set("s_old_email",f.old_email); set("s_old_access",f.old_access);
+  set("s_old_phone",f.old_phone); set("s_secure_email",f.secure_email); set("s_signup_dev",f.signup_dev);
+  set("s_photos",f.photos); set("s_usual_dev",f.usual_dev); set("s_fb",f.fb); set("s_codes",f.codes);
+}
+function saveSetup(){
+  const g=id=>{const el=document.getElementById(id); return el?el.value.trim():"";};
+  if(!g("s_username")){ toast("Username daal"); return; }
+  if(!g("s_secure_email")){ toast("Naya secure email zaroori hai"); return; }
+  S.facts = {
+    username:g("s_username"), old_email:g("s_old_email"), old_access:g("s_old_access"),
+    old_phone:g("s_old_phone"), secure_email:g("s_secure_email"), signup_dev:g("s_signup_dev"),
+    photos:g("s_photos"), usual_dev:g("s_usual_dev"), fb:g("s_fb"), codes:g("s_codes"),
+    savedAt:now()
+  };
+  S.journal = S.journal||[]; S.journal.unshift(`[${now()}] Setup saved — @${S.facts.username}`);
+  save(); toast("✅ Saved! Plan ready"); go("home");
+}
+function editFacts(){ document.getElementById("setupPage").style.display="block"; renderSetup();
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("on")); window.scrollTo(0,0); }
+function hasSetup(){ return S.facts && S.facts.username; }
+
+/* ── Home ── */
+function renderHome(){
+  const sub=document.getElementById("hdrSub"), pill=document.getElementById("hdrPill");
+  if(!hasSetup()){ document.getElementById("setupPage").style.display="block";
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("on")); return; }
+  document.getElementById("setupPage").style.display="none";
+  sub.textContent = "@"+S.facts.username + " · offline · local only";
+  const routes=S.routes||{};
+  const success=Object.values(routes).some(r=>r.status==="success");
+  const active=Object.entries(routes).filter(([k,r])=>["pending","review","waiting"].includes(r.status)).length;
+  pill.textContent = success?"✅ Recovered":(active?active+" active":"Setup ✓");
+  pill.className = "pill"+(success?" ok":"");
+
+  document.getElementById("successHero").innerHTML = success ? `
+    <div class="success-hero"><h2>🎉 Account Recovered!</h2>
+    <p>Abhi ye kar: (1) Strong unique password (2) Sessions logout (3) 2FA ON + backup codes save
+    (4) Contact info update (5) Linked apps audit</p>
+    <button class="btn green" onclick="go('journal')">Post-recovery log likho</button></div>` : "";
+
+  const prepOn=Object.values(S.prep||{}).filter(Boolean).length;
+  document.getElementById("homeStats").innerHTML = `
+    <p>👤 <b style="color:var(--text)">@${esc(S.facts.username)}</b> · 📧 secure: <b style="color:var(--text)">${esc(S.facts.secure_email||"—")}</b></p>
+    <p style="margin-top:7px">✅ Prep: <b style="color:var(--text)">${prepOn}/9</b> · 🛤️ Routes started: <b style="color:var(--text)">${Object.keys(routes).length}/9</b>
+    ${success?"":` · ▶ <b style="color:var(--orange)">${esc(nextAction().short)}</b>`}</p>`;
+}
+
+/* ── Plan generator ── */
+function planData(){
+  const f=S.facts; const steps=[]; let n=1;
+  if(f.old_access==="yes"){
+    steps.push({n:n++,t:"Purane inbox check (sabse fast)",d:`${f.old_email||"Purana inbox"} me SPAM bhi check — security@mail.instagram.com dhoondho.\nMail mile to "secure my account" tap → password reset.`,
+      link:"https://www.instagram.com/",lt:"Open Instagram ↗"});
+  }
+  steps.push({n:n++,t:"Password reset link (1 baar try)",d:`instagram.com/accounts/password/reset → username daalo: @${f.username}\nAgar link kisi tere paas wale contact pe aaye → done!`,link:"https://www.instagram.com/accounts/password/reset/",lt:"Open reset ↗"});
+  steps.push({n:n++,t:"HACKED FLOW — asli main route",d:`instagram.com/hacked → "My account was compromised"\nUsername daalo → login link NA aaye → "I can't access this email/phone" → Need more help?\n→ "Request support from your MOBILE device" ⚠️\n→ NAYA secure email: ${f.secure_email||"<secure email>"}`,
+    link:"https://www.instagram.com/hacked/",lt:"Open hacked flow ↗"});
+  if(f.photos==="yes"){
+    steps.push({n:n++,t:"IDENTITY = VIDEO SELFIE (tera target)",d:"Secure email check karo (spam bhi) → video selfie screen aayegi.\nLight achi, bina filter/glasses/hat, sar slow ghumao.\nReview ≤2 business days → PASS = password-reset link naye email pe ✅",
+      link:"https://help.instagram.com/1053588012132894",lt:"Selfie guide ↗"});
+  }else{
+    steps.push({n:n++,t:"IDENTITY = signup details",d:`Account me photos nahi → signup email/phone + device type puchega.\nPurana email: ${f.old_email||"?"} · device: ${f.signup_dev||"Android"}`,
+      link:"https://help.instagram.com/358911864194456",lt:"Help article ↗"});
+  }
+  steps.push({n:n++,t:"Agar option NA dikhe (missing)",d:"• App LATEST + clear cache\n• Sahi @username daalo (galat identifier = missing options)\n• Ek din 1 request — spam = bot flag ❌\n• Support request MOBILE se hi\n• Trusted device pe try karo (jo Instagram pehchanta ho)",
+    link:"https://help.instagram.com/358911864194456",lt:"Lost email/phone help ↗"});
+  if(f.fb==="yes"){
+    steps.push({n:n++,t:"Facebook link se recover",d:"Facebook wapas login karke instagram.com/hacked wahi flow try karo (Meta same account maanta hai).",
+      link:"https://www.facebook.com/hacked",lt:"facebook.com/hacked ↗"});
+  }
+  steps.push({n:n++,t:"Escalation (3-4 din no result)",d:"1. Meta AI assistant (Help Center chat, 24/7)\n2. Real feedback form (niche link)\n3. X/Twitter @InstagramComms pe public tweet\n4. Meta Verified = paid human chat/email (fastest human)\n❌ Koi paid recovery service = fraud",
+    link:"https://help.instagram.com/contact/272476913194545",lt:"Feedback form ↗"});
+  steps.push({n:n++,t:"WAIT discipline",d:"Selfie/support review: up to 2 business days, kabhi hafta+.\nRoz 1 baar inbox check (spam bhi), baaki tool me status update karte raho.\nRepeat requests se speed NAHI badhti — bot lagta hai."});
+  return steps;
+}
+function renderPlan(){
+  const el=document.getElementById("planSteps");
+  if(!hasSetup()){ el.innerHTML=`<div class="card"><p>Pehle Setup complete karo (Journal → Edit setup).</p></div>`; return; }
+  const routes=S.routes||{};
+  const doneMap={0:"resetlink",1:"hacked",2:"support",3:"selfie"};
+  el.innerHTML = planData().map(s=>{
+    const rk=doneMap[s.n-1]; const done=rk&&routes[rk]&&routes[rk].status==="success";
+    return `<div class="step ${done?"done":""}"><div class="step-h">
+      <div class="step-n">${done?"✓":s.n}</div>
+      <div class="step-t"><h4>${esc(s.t)}</h4><p>${esc(s.d)}</p>
+      ${s.link?`<button class="btn primary sm" onclick="openLink('${s.link}')">${esc(s.lt)} <span class="ext">↗</span></button>`:""}
+      </div></div></div>`;
+  }).join("");
+}
+
+/* ── Prep checklist ── */
+const PREP_ITEMS = [
+  {id:"uname", t:"Username yaad hai (@handle)", fixed:true},
+  {id:"mail",  t:"Naya secure email ready", h:"Gmail best — spam kam aata hai", fixed:true},
+  {id:"id",    t:"Government ID click ki clear photo hai", h:"Aadhaar/PAN/license — blur-free"},
+  {id:"oldin", t:"Purane sab inboxes check kiye (spam bhi)", h:"security@mail.instagram.com dhundo"},
+  {id:"dev",   t:"Usual device / pata hai kaunsa tha", h:"Trusted device recognition me madad"},
+  {id:"photos",t:"Account me apni photos hain", h:"Selfie match ke liye zaroori", fixed:true},
+  {id:"app",   t:"Instagram app UPDATED (latest)", h:"Play Store/App Store"},
+  {id:"one",   t:"Sirf 1 request per day — spam nahi", h:"Repeat = bot flag"},
+  {id:"safe",  t:"Kisi ko code/password share NAHI karna", h:"Koi bhi 'support' ho"},
+];
+function renderPrep(){
+  const f=S.facts||{}; S.prep=S.prep||{};
+  const auto={uname:!!f.username, mail:!!f.secure_email, photos:f.photos==="yes"};
+  const el=document.getElementById("prepList");
+  el.innerHTML = PREP_ITEMS.map(it=>{
+    const on = it.fixed ? auto[it.id] : !!S.prep[it.id];
+    const fixed = it.fixed;
+    return `<div class="check ${on?"on":""}" ${fixed?"":`onclick="togglePrep('${it.id}')"`}>
+      <div class="box">✓</div>
+      <div class="txt">${esc(it.t)}${it.h?`<span class="hint">${esc(it.h)}</span>`:""}${fixed?`<span class="hint">auto: setup facts se</span>`:""}</div>
+    </div>`;
+  }).join("");
+}
+function togglePrep(id){ S.prep[id]=!S.prep[id]; save(); renderPrep(); }
+function resetPrep(){ S.prep={}; save(); renderPrep(); toast("Checklist reset"); }
+
+/* ── Routes ── */
+function renderRoutes(){
+  const el=document.getElementById("routeList"); S.routes=S.routes||{};
+  el.innerHTML = Object.entries(ROUTES).map(([k,r])=>{
+    const st=S.routes[k]||{};
+    const status=st.status||"-";
+    const updates=(st.updates||[]).map(u=>`• ${esc(u.at)} → <b>${esc(u.status)}</b>${u.note?" — "+esc(u.note):""}`).join("<br>");
+    return `<div class="route">
+      <div class="route-top">
+        <div class="route-name">${esc(r.name)}</div>
+        <div class="status ${status}">${status}</div>
+      </div>
+      <div class="route-desc">${esc(r.desc)}</div>
+      <div class="route-acts">
+        <button class="btn primary sm" onclick="startRoute('${k}')">${st.started?"↺ Restart":"▶ Start"}</button>
+        <button class="btn sm" onclick="openLink('${r.url}')">Open official ↗</button>
+        <select class="sel" onchange="setStatus('${k}',this.value)">
+          ${["-","pending","review","waiting","success","failed"].map(s=>`<option value="${s}" ${status===s?"selected":""}>${s==="-"?"status…":s}</option>`).join("")}
+        </select>
+      </div>
+      <input class="note-in" placeholder="Note (optional) + Enter" value="" onkeydown="if(event.key==='Enter'){addNote('${k}',this);this.value=''}">
+      ${st.started?`<div class="updates">▶ started ${esc(st.started)}${updates?"<br>"+updates:""}</div>`:""}
+    </div>`;
+  }).join("");
+}
+function startRoute(k){
+  S.routes=S.routes||{};
+  S.routes[k]={...(S.routes[k]||{}), started:now(), status:"pending", updates:[...( (S.routes[k]||{}).updates||[] ),{at:now(),status:"started",note:""}]};
+  S.journal.unshift(`[${now()}] STARTED ${k} — ${ROUTES[k].name}`);
+  save(); renderRoutes(); toast("▶ "+ROUTES[k].name);
+}
+function setStatus(k,v){
+  if(v==="-")return;
+  S.routes=S.routes||{};
+  const e=S.routes[k]||{started:now()};
+  e.status=v; e.updates=e.updates||[]; e.updates.push({at:now(),status:v,note:""});
+  S.routes[k]=e; S.journal.unshift(`[${now()}] ${k} → ${v}`);
+  save(); renderRoutes(); toast(ROUTES[k].name+" → "+v);
+}
+function addNote(k,input){
+  const v=input.value.trim(); if(!v)return;
+  S.routes=S.routes||{};
+  const e=S.routes[k]||{started:now(),status:"pending"};
+  e.updates=e.updates||[]; e.updates.push({at:now(),status:e.status,note:v});
+  S.routes[k]=e; S.journal.unshift(`[${now()}] ${k}: ${v}`);
+  save(); renderRoutes(); toast("Note added");
+}
+
+/* ── Next action engine ── */
+function nextAction(){
+  const r=S.routes||{}, f=S.facts||{};
+  const st=k=>(r[k]||{}).status||"-";
+  if(st("revert")==="-" && f.old_access==="yes") return {short:"Purane inbox — security mail check", p:"Purana inbox kholo → security@mail.instagram.com → 'secure my account'", go:"routes"};
+  if(st("hacked")==="-") return {short:"instagram.com/hacked start karo", p:"instagram.com/hacked → 'My account was compromised' → steps follow", go:"routes"};
+  if(["pending","waiting"].includes(st("hacked")) && st("support")==="-") return {short:"MOBILE pe support request", p:"Login link fail? → can't access email/phone → support request + naya secure email", go:"routes"};
+  if(["pending","waiting","review"].includes(st("support")) && st("selfie")==="-") return {short:"Secure email ka inbox check", p:"Secure email + spam check karo — Instagram ke next steps ka wait. Aaye to selfie banao.", go:"routes"};
+  if(["review","pending","waiting"].includes(st("selfie"))) return {short:"Selfie review — 2 din wait", p:"Review chal raha hai. Roz 1 baar inbox check. Status update karte raho.", go:"routes"};
+  if(Object.values(r).some(x=>x.status==="success")) return {short:"🎉 Recovered! Hardening karo", p:"Password → sessions logout → 2FA → contact info → apps audit", go:"home"};
+  return {short:"Escalation: Meta AI / form / tweet", p:"Meta AI chat · feedback form · @InstagramComms · Meta Verified", go:"home"};
+}
+function renderNextCard(){
+  const el=document.getElementById("nextCard"); if(!el)return;
+  const na=nextAction();
+  el.innerHTML=`<div class="card"><h3>▶ Right now</h3><p><b style="color:var(--orange)">${esc(na.short)}</b><br>${esc(na.p)}</p></div>`;
+}
+
+/* ── Journal ── */
+function renderJournal(){
+  const el=document.getElementById("jrnList");
+  el.innerHTML = (S.journal&&S.journal.length) ? S.journal.map(j=>`<div class="jrn">${esc(j)}</div>`).join("")
+    : `<div class="card"><p>Abhi koi entry nahi.</p></div>`;
+}
+function addJournal(){
+  const inp=document.getElementById("jrnInput"); const v=inp.value.trim(); if(!v){toast("Note likho");return;}
+  S.journal=S.journal||[]; S.journal.unshift(`[${now()}] ${v}`); save(); inp.value=""; renderJournal(); toast("📝 Saved");
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`ig-recovery-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  toast("⬇ Exported");
+}
+function importData(ev){
+  const file=ev.target.files[0]; if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ const d=JSON.parse(rd.result); if(!d.facts) throw0; S=d; save(); toast("⬆ Imported"); go(S.facts&&S.facts.username?"home":"home"); renderHome(); }
+    catch(e){ toast("Invalid JSON"); } };
+  rd.readAsText(file);
+}
+
+/* ── Boot ── */
+function renderAll(){
+  renderHome();
+  if(hasSetup()){ go(S.page&&document.getElementById("page-"+S.page)?S.page:"home"); renderNextCard(); }
+}
+window.addEventListener("DOMContentLoaded",()=>{
+  renderSetup();
+  if(hasSetup()){ document.getElementById("setupPage").style.display="none"; }
+  renderAll();
+  // Home page me next-action card inject
+  const anchor=document.getElementById("homeStats");
+  if(anchor){ const div=document.createElement("div"); div.id="nextCard"; anchor.parentNode.insertBefore(div, anchor.nextSibling); renderNextCard(); }
+});
+</script>
+</body>
+</html>
